@@ -6,7 +6,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/rgu01/OneDrive - Mälardalens högskola/Backup/workspace/TACAS21_Experiments/ref/libj2uppaal.jar"/>
-	<classpathentry kind="lib" path="C:/Users/rgu01/OneDrive - Mälardalens högskola/Backup/workspace/TACAS21_Experiments/ref/slf4j-api-1.7.12.jar"/>
+	<classpathentry kind="lib" path="ref/libj2uppaal.jar"/>
+	<classpathentry kind="lib" path="ref/slf4j-api-1.7.12.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
