@@ -10,12 +10,14 @@ public class Parameters {
 	public int wlTravelingTimeUpper = 0;
 	public int wlTaskTimeLower = 0;
 	public int wlTaskTimeUpper = 0;
+	private int wlChTimeLower = 0;
+	private int wlChTimeUpper = 0;
 	public int tkTravelingTimeLower = 0;
 	public int tkTravelingTimeUpper = 0;
 	public int tkTaskTimeLower = 0;
 	public int tkTaskTimeUpper = 0;
-	public int chTaskTimeLower = 0;
-	public int chTaskTimeUpper = 0;
+	private int tkChTimeLower = 0; // unit second
+	private int tkChTimeUpper = 0; // unit second
 	public int goal = 0;
 	public int iterations = 0;
 	private int totalTime = 0; // unit: second
@@ -24,6 +26,58 @@ public class Parameters {
 	public String path_save = "";
 	public boolean compact = false;
 	public String path_compact = "";
+	
+	/**
+	 * 
+	 * @param lower: unit: minute
+	 * @param upper: unit: minute
+	 */
+	public void setTkChTime(int lower, int upper) {
+		this.tkChTimeLower = lower * 60;
+		this.tkChTimeUpper = upper * 60;
+	}
+	
+	/**
+	 * 
+	 * @return unit: second
+	 */
+	public int getTkChLower() {
+		return this.tkChTimeLower;
+	}
+	
+	/**
+	 * 
+	 * @return unit: second
+	 */
+	public int getTkChUpper() {
+		return this.tkChTimeUpper;
+	}
+	
+	/**
+	 * 
+	 * @param lower: unit: minute
+	 * @param upper: unit: minute
+	 */
+	public void setWlChTime(int lower, int upper) {
+		this.wlChTimeLower = lower * 60;
+		this.wlChTimeUpper = upper * 60;
+	}
+	
+	/**
+	 * 
+	 * @return unit: second
+	 */
+	public int getWlChLower() {
+		return this.wlChTimeLower;
+	}
+	
+	/**
+	 * 
+	 * @return unit: second
+	 */
+	public int getWlChUpper() {
+		return this.wlChTimeUpper;
+	}
 
 	/**
 	 * 
@@ -365,7 +419,7 @@ public class Parameters {
 		strDelaration += "\n";
 
 		for (int tk = 0; tk < this.tkNum; tk++) {
-			str += "//wheel loder " + tk + "\n";
+			str += "//truck " + tk + "\n";
 			// stones to secondary crushers and chargers
 			for (int st = 0; st < this.wlNum; st++) {
 				for (int sc = 0; sc < this.scNum; sc++) {
@@ -415,6 +469,21 @@ public class Parameters {
 							+ ", TASK_CHARGE, TASK_LOAD_FROM_PRIMARY);\n";
 					strDelaration += "m_primary" + pc + "Charger" + ch + "_TK" + tk + ",";
 					strDelaration += "m_charger" + ch + "Primary" + pc + "_TK" + tk + ",";
+				}
+				strDelaration += "\n";
+			}
+			// secondary crusher to chargers
+			for(int sc = 0; sc < this.scNum; sc++) {
+				for (int ch = 0; ch < this.chargerNum; ch++) {
+					rand = this.randomNumber(this.tkTravelingTimeLower, this.tkTravelingTimeUpper);
+					str += "m_secondary" + sc + "Charger" + ch + "_TK" + tk + " = Movement(ID_TRUCK" + tk
+							+ ", ID_SECONDARYCRUSHER" + sc + ", ID_CHARGER" + ch + ", " + rand
+							+ ",TASK_UNLOAD_TO_SECONDARY, TASK_CHARGE);\n";
+					str += "m_charger" + ch + "Secondary" + sc + "_TK" + tk + " = Movement(ID_TRUCK" + tk
+							+ ", ID_CHARGER" + ch + ", ID_SECONDARYCRUSHER" + sc + ", " + rand
+							+ ", TASK_CHARGE,TASK_UNLOAD_TO_SECONDARY);\n";
+					strDelaration += "m_secondary" + sc + "Charger" + ch + "_TK" + tk + ",";
+					strDelaration += "m_charger" + ch + "Secondary" + sc + "_TK" + tk + ",";
 				}
 				strDelaration += "\n";
 			}
@@ -486,15 +555,15 @@ public class Parameters {
 		strDelaration += "\n";
 
 		if (this.chargerNum != 0) {
-			bcet = this.randomNumber(this.chTaskTimeLower, this.chTaskTimeUpper);
-			wcet = this.randomNumber(bcet, this.chTaskTimeUpper);
+			bcet = this.randomNumber(this.wlChTimeLower, this.wlChTimeUpper);
+			wcet = this.randomNumber(bcet, this.wlChTimeUpper);
 			for (int w = 0; w < this.wlNum; w++) {
 				str += "o_battery_WL" + w + " = Monitor(ID_WHEELLOADER" + w + ", ID_EVENT_BATTERY_LOW, " + bcet + ", "
 						+ wcet + ");\n";
 				strDelaration += "o_battery_WL" + w + ",";
 			}
-			bcet = this.randomNumber(this.chTaskTimeLower, this.chTaskTimeUpper);
-			wcet = this.randomNumber(bcet, this.chTaskTimeUpper);
+			bcet = this.randomNumber(this.tkChTimeLower, this.tkChTimeUpper);
+			wcet = this.randomNumber(bcet, this.tkChTimeUpper);
 			for (int tk = 0; tk < this.tkNum; tk++) {
 				str += "o_battery_TK" + tk + " = Monitor(ID_TRUCK" + tk + ", ID_EVENT_BATTERY_LOW, " + bcet + ", "
 						+ wcet + ");\n";
@@ -550,6 +619,14 @@ public class Parameters {
 				for (int ch = 0; ch < this.chargerNum; ch++) {
 					str += "m_primary" + pc + "Charger" + ch + "_TK" + tk + ".location, ";
 					str += "m_charger" + ch + "Primary" + pc + "_TK" + tk + ".location, ";
+				}
+				str += "\n";
+			}
+			// secondary crusher to chargers
+			for(int sc = 0; sc < this.scNum; sc++) {
+				for (int ch = 0; ch < this.chargerNum; ch++) {
+					str += "m_secondary" + sc + "Charger" + ch + "_TK" + tk + ".location,";
+					str += "m_charger" + ch + "Secondary" + sc + "_TK" + tk + ".location,";
 				}
 				str += "\n";
 			}
@@ -691,15 +768,24 @@ public class Parameters {
 		setting.tkNum = this.randomNumber(1, this.tkNum);
 		setting.pcNum = this.randomNumber(1, this.pcNum);
 		setting.scNum = this.randomNumber(1, this.scNum);
-		setting.chargerNum = this.randomNumber(0, this.chargerNum);
+		if(this.chargerNum != 0) {
+			setting.chargerNum = this.randomNumber(1, this.chargerNum);
+		}
+		else {
+			setting.chargerNum = 0;
+		}
 		setting.wlTravelingTimeLower = this.wlTravelingTimeLower;
 		setting.wlTravelingTimeUpper = this.wlTravelingTimeUpper;
 		setting.wlTaskTimeLower = this.wlTaskTimeLower;
 		setting.wlTaskTimeUpper = this.wlTaskTimeUpper;
+		setting.wlChTimeLower = this.wlChTimeLower;
+		setting.wlChTimeUpper = this.wlChTimeUpper;
 		setting.tkTravelingTimeLower = this.tkTravelingTimeLower;
 		setting.tkTravelingTimeUpper = this.tkTravelingTimeUpper;
 		setting.tkTaskTimeLower = this.tkTaskTimeLower;
 		setting.tkTaskTimeUpper = this.tkTaskTimeUpper;
+		setting.tkChTimeLower = this.tkChTimeLower;
+		setting.tkChTimeUpper = this.tkChTimeUpper;
 
 		return setting;
 	}
